@@ -26,14 +26,33 @@ from google.cloud import logging as google_cloud_logging
 
 from app.app_utils import services
 from app.app_utils.a2a import attach_a2a_routes
+from app.app_utils.reasoning_engine_adapter import attach_reasoning_engine_routes
 from app.app_utils.telemetry import setup_telemetry
 from app.app_utils.typing import Feedback
 
 load_dotenv()
 setup_telemetry()
-_, project_id = google.auth.default()
-logging_client = google_cloud_logging.Client()
-logger = logging_client.logger(__name__)
+try:
+    _, project_id = google.auth.default()
+    logging_client = google_cloud_logging.Client()
+    logger = logging_client.logger(__name__)
+except Exception as e:
+    import logging as std_logging
+
+    class FallbackLogger:
+        def __init__(self, name: str):
+            self.inner = std_logging.getLogger(name)
+
+        def log_struct(self, info: dict, severity: str = "INFO"):
+            level_name = severity.upper()
+            level = getattr(std_logging, level_name, std_logging.INFO)
+            self.inner.log(level, "Structured log: %s", info)
+
+    logger = FallbackLogger(__name__)
+    std_logging.warning(
+        "GCP default auth keys not found. Falling back to local logging: %s",
+        e,
+    )
 allow_origins = (
     os.getenv("ALLOW_ORIGINS", "").split(",") if os.getenv("ALLOW_ORIGINS") else None
 )
@@ -75,6 +94,7 @@ app: FastAPI = get_fast_api_app(
 )
 app.title = "security-briefing-agent"
 app.description = "API for interacting with the Agent security-briefing-agent"
+attach_reasoning_engine_routes(app)
 
 
 @app.post("/feedback")

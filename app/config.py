@@ -13,17 +13,16 @@ NVD_API_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 NVD_API_KEY = os.getenv("NVD_API_KEY", "")
 
 # Keywords to search NVD CVEs
-CVE_KEYWORDS = ["Android", "iOS", "JWT", "OAuth"]
+CVE_KEYWORDS = ["Android", "iOS", "JWT", "OAuth", "SSRF"]
 
 # Default limit of CVEs per keyword
 CVE_LIMIT = 5
 
 # Security news topics to search
 NEWS_TOPICS = [
-    "Android security",
-    "iOS security",
-    "web application security",
-    "AI LLM security",
+    "mobile security",
+    "web API security",
+    "AI LLM threats",
 ]
 
 # Agent instruction guiding formatting and scope filtering
